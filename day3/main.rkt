@@ -7,21 +7,25 @@
 (define-runtime-path full "full.data")
 
 (define (load path) (call-with-input-file path parse ) )
-(define (parse port) (port->string port) )
+(define (parse port) (string-append (port->string port) "do()"))
 
 (define re1 #px"mul\\((\\d+),(\\d+)\\)")
 
-(define (solve1 path)
-  (for/sum ([mul (regexp-match* re1 (load path)
-                                #:match-select cdr )])
-    (apply * (map string->number mul))
-    )
+(define (run input)
+  (define filtered (regexp-match* re1 input #:match-select cdr ))
+  (for/sum ([mul filtered]) (apply * (map string->number mul)) )
   )
+
+(define (solve1 path) (run (load path)) )
 
 (solve1 example1)
 (solve1 full)
 
+(define dont (regexp-quote "don't()"))
+(define do (regexp-quote "do()"))
+(define re2 (pregexp (string-append dont ".*?" do)))
 
-; (define (solve2 path) #t)
-; (solve2 example2)
-; (solve2 full)
+(define (solve2 path) (run (regexp-replace* re2 (load path) "")) )
+
+(solve2 example2)
+(solve2 full)
